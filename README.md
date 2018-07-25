@@ -1,6 +1,25 @@
-Yii Authclient for QQ, Wechat
 
-**Config Setting**
+Yii2 for QQ, 微信等第三方授权登录
+===============
+
+安装
+------------
+
+执行
+```
+php composer.phar require hbhe/yii2-authclient "*"
+```
+
+或者增加
+```
+"hbhe/yii2-authclient": "*"
+```
+到`composer.json`文件中.
+
+
+用法说明
+-------------
+**配置**
 
 ```
 'components' => [
@@ -62,8 +81,10 @@ class SiteController extends Controller
 
     public function onAuthSuccess(ClientInterface $client)
     {
-        $attributes = $client->getUserAttributes();
+        $attributes = $client->getUserAttributes();   
         Yii::info([__METHOD__, __LINE__, $attributes]);
+
+        // 以下为业务处理逻辑， 仅供参考
         $auth = Auth::find()->where([
             'oauth_client' => $client->getName(), // $client->id
             'oauth_client_user_id' => ArrayHelper::getValue($attributes, 'id')
@@ -171,7 +192,7 @@ class SiteController extends Controller
 
 **View**
 
-login
+login.php
 ```
 <div class="form-group">
     <?php $authAuthChoice = yii\authclient\widgets\AuthChoice::begin(['baseAuthUrl' => ['/site/oauth']]); ?>
@@ -181,9 +202,11 @@ login
     </ul>
     <?php yii\authclient\widgets\AuthChoice::end(); ?>
 </div>
+
 ```
 
 **Model**
+一个用户主账号可以对应多个第三方账号, 所以单独创建一张表auth
 ```
 class Auth extends ActiveRecord
 {
