@@ -1,0 +1,22 @@
+{
+    "name": "hbhe/yii2-authclient",
+    "type": "yii2-extension",
+    "keywords": ["yii2","extension", "authclient", "QQ Auth", "Wechat Auth", "QQ登录", "微信登录"],
+    "description": "Yii Authclient for QQ, Wechat",
+    "homepage": "https://github.com/hbhe/yii2-authclient",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "hbhe",
+            "email": "57620133@qq.com",
+            "homepage": "http://mywordpress.cn/",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "yiisoft/yii2-authclient": "~2.0@dev"
+    },
+    "autoload": {
+        "psr-4": {"hbhe\\authclient\\": ""}
+    }
+}
