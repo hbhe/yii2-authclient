@@ -192,7 +192,7 @@ class SiteController extends Controller
 
 **View**
 
-login.php
+login.php, 显示第三方授权登录按钮
 ```
 <div class="form-group">
     <?php $authAuthChoice = yii\authclient\widgets\AuthChoice::begin(['baseAuthUrl' => ['/site/oauth']]); ?>
