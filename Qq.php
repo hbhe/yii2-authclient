@@ -80,6 +80,9 @@ use Yii;
 */
 class Qq extends OAuth2
 {
+    // 移动APP与网页应用要打通需向发邮件电请, 通过后可置为true, http://wiki.connect.qq.com/%E5%BC%80%E5%8F%91%E8%80%85%E5%8F%8D%E9%A6%88
+    public $has_unionid = false;
+
     /**
      * @inheritdoc
      */
@@ -142,6 +145,17 @@ class Qq extends OAuth2
 		if ( isset($user['error']) ) {
             throw new HttpException(400, $user['error']. ':'. $user['error_description']);
 		}
+        \Yii::error(['unionid info', $user]);
+		/*
+        [
+            'unionid info',
+            [
+                'client_id' => '101489472',
+                'openid' => '2F8E0C3BBD75BD4E1F35E366D5FFDFE7',
+                'unionid' => 'UID_4D3D8D1622531CED20E05745AAC5C759',
+            ],
+        ]
+		*/
         $userAttributes = $this->api(
 			"user/get_user_info",
 			'GET',
@@ -150,7 +164,7 @@ class Qq extends OAuth2
             	'openid' => $user['openid'],
 			]
 		);
-		$userAttributes['id'] = $user['openid'];
+		$userAttributes['id'] = $this->has_unionid ? $user['unionid'] : $user['openid'];
 		return $userAttributes;
     }
 
@@ -176,6 +190,14 @@ class Qq extends OAuth2
 
         $arr = $response->getData();
         return $arr;
+    }
+
+    public function applyAccessTokenToRequest($request, $accessToken)
+    {
+        $data = $request->getData();
+        $data['access_token'] = $accessToken->getToken();
+        $data['unionid'] = $this->has_unionid ? 1 : 0;
+        $request->setData($data);
     }
 
     /**
