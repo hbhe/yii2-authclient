@@ -31,6 +31,7 @@ php composer.phar require hbhe/yii2-authclient "*"
                 'class' => 'hbhe\authclient\Qq',
                 'clientId' => '101489472',
                 'clientSecret' => '90f6db22535e7a9bdf9c8658a04ab847',
+                'has_unionid' => false
                 'normalizeUserAttributeMap' => [
                     'username' => 'nickname',
                     'avatar_url' => 'figureurl_qq_2',
