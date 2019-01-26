@@ -246,7 +246,8 @@ class Auth extends ActiveRecord
 
 ```
 
-
+前后端分离的情况下
+------------
 在前后端分离的情况下, 第三方登录流程如下：
 1. 前端负责拼装跳转地址(即授权URL)，浏览器条到第三方后再跳回来，前端会拿到code；
 2. 前端拿到code后, 调用后端的REST API接口，将code换成openid; 
@@ -315,10 +316,10 @@ main.php配置如下
 ],
 ```
 
+```
 /**
  * 根据code获取openid的接口函数
  */
-```
 class SiteController extends ActiveController
 {
     public $modelClass = 'common\models\User';
