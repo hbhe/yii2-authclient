@@ -245,3 +245,128 @@ class Auth extends ActiveRecord
 }
 
 ```
+
+
+在前后端分离的情况下, 第三方登录流程如下：
+1. 前端负责拼装跳转地址(即授权URL)，浏览器条到第三方后再跳回来，前端会拿到code；
+2. 前端拿到code后, 调用后端的REST API接口，将code换成openid; 
+3. 前端拿到openid(或者unionid)后, 调用后端第三方登录接口进行登录
+4. 如果登录成功，接口返回主账号信息, 前端跳首页或者指定页面, 登录成功；否则调到绑定页面(或者创建新账号页面), 调用绑定接口, 返回主账号号信息, 登录成功。 
+
+main.php配置如下
+```
+'authClientCollection' => [
+    'class' => 'yii\authclient\Collection',
+    'clients' => [
+        'qq' => [
+            // 在connect.qq.com网站上配置时, 设置回调域要指定到页面如http://xxx.com/site/oauth (不只是域名)
+            'class' => 'hbhe\authclient\Qq',
+            'clientId' => '101489472',
+            'clientSecret' => 'xxx',
+            'normalizeUserAttributeMap' => [
+                'username' => 'nickname',
+                'avatar_url' => 'figureurl_qq_2',
+            ],
+            // 'has_unionid' => true,
+            'validateAuthState' => false, // 当要提供输入code返回openid的api接口时, 设为false
+            'returnUrl' => 'http://127.0.0.1/paipai/frontend/web/site/oauth',
+        ],
+
+        'weixin_web' => [
+            // 在 https://open.weixin.qq.com 网站上配置时, 授权回调设为www.xx.com, 不用具体到页面,但是xx.com是不行的,
+            'class' => 'hbhe\authclient\Weixin',
+            'clientId' => 'wx2cdf9b19f4592b01',
+            'clientSecret' => 'xxx',
+            'scope' => 'snsapi_login',
+            'normalizeUserAttributeMap' => [
+                'id' => 'unionid',
+                'username' => 'nickname',
+                'avatar_url' => 'headimgurl',
+            ],
+            'validateAuthState' => false, // 当要提供输入code返回openid的api接口时, 设为false
+        ],
+
+        'weixin_mp' => [
+            // 在微信公众号后台网站上配置时, 授权回调设为www.site.com, 不用具体到页面
+            'class' => 'hbhe\authclient\WeixinMp',
+            'clientId' => 'wxa7f2ac6ae9f4330c',
+            'clientSecret' => 'xxx',
+            'scope' => 'snsapi_userinfo', // snsapi_base, snsapi_userinfo
+            'normalizeUserAttributeMap' => [
+                'id' => 'unionid',
+                'username' => 'nickname',
+                'avatar_url' => 'headimgurl',
+            ],
+            'validateAuthState' => false, // 当要提供输入code返回openid的api接口时, 设为false
+        ],
+
+        'github' => [
+            'class' => 'yii\authclient\clients\GitHub',
+            'clientId' => '9dc99c02c5f8cafd9391',
+            'clientSecret' => '52033e4158449b453a56436bf9d9821d0c6c3a56',
+            'normalizeUserAttributeMap' => [
+                'username' => 'login',
+                'avatar_url' => 'avatar_url',
+            ],
+            'validateAuthState' => false,
+            'returnUrl' => 'http://127.0.0.1/paipai/frontend/web/site/oauth',
+        ],
+    ]
+],
+```
+
+/**
+ * 根据code获取openid的接口函数
+ */
+```
+class SiteController extends ActiveController
+{
+    public $modelClass = 'common\models\User';
+
+    public function actions()
+    {
+        $actions['oauth'] = [
+            'class' => 'yii\authclient\AuthAction',
+            'successCallback' => [$this, 'onAuthSuccess'],
+        ];
+
+        return $actions;
+    }
+
+    /**
+     * 根据code返回openid, 注意每个code只能使用一次
+     * http://api.xxx.com/v1/site/oauth?authclient=weixin_mp&code=061aVXdz1Xz9Sa0Bstez1xKGdz1aVXdj
+     * @param ClientInterface $client
+     * @return bool|\yii\console\Response|\yii\web\Response
+     */
+    /*
+    {
+        "success": true,
+        "data": {
+            "openid": "oEvDz1DeOBelocjETSsA65ubVndo",
+            "nickname": "不散的61",
+            "sex": 2,
+            "language": "zh_CN",
+            "city": "",
+            "province": "波茨坦",
+            "country": "德国",
+            "headimgurl": "http://thirdwx.qlogo.cn/mmopen/v",
+            "privilege": [],
+            "unionid": "o3zOnwfT6sbHms5tSOA_I55N0j0E",
+            "id": "o3zOnwfT6sbHms5tSOA_I55N0j0E",
+            "username": "不散的61",
+            "avatar_url": "http://thirdwx.qlogo.cn/mm"
+        }
+    }
+    */
+    public function onAuthSuccess(ClientInterface $client)
+    {
+        $attributes = $client->getUserAttributes();
+        Yii::info([__METHOD__, __LINE__, $attributes]);
+        $response = Yii::$app->getResponse();
+        $response->data = $attributes;
+        return $response;
+    }
+
+}
+```
